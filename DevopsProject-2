@@ -1,0 +1,82 @@
+## project based on AWS, Jenkins, Ansible and Docker
+
+First create 3 instance on Aws
+First instance -->Jenkins
+Second instance -->Ansible
+Third instance -->Docker
+*************************1****************************
+Step1. Install Jenkins on Jenkins server
+$ sudo yum install java*
+$ sudo yum install jenkins
+$ sudo systemctl start jenkins
+step2. Give root access to instance
+$ vi /etc/ssh/sshd_config 
+  uncomment PermitRootLogin
+  and write yes PasswordAuthentication
+  
+step3. set root password
+$ passwd root
+
+step4:- create ssh key
+$ ssh-keygen
+$ ssh-copy-id roo@<ansible server private ip>
+
+step5: go to configure --> ssh server --> add server 
+1. name ->jenkins
+   server name: <jenkins private ip>
+   host name: root
+   use password
+2. name ->jenkins
+   server name: <ansible private ip>
+   host name: root
+   use password
+   
+step6: Go to jenkins <jenkins public ip>:8080
+go to manage plugin and install "public over ssh"
+click on jenkins username-->configure-->Generate token, then copy this token and go to github repo -->setting-->webhook 
+and paste it here.and click and save
+
+go to job -->build -->send file or execute commands over ssh -->name jenkins -->Exec cmd 
+$ rsync -avh /var/lib/jenkins/workspace/demo-project1/Dockerfile root@<ansible private ip>:/opt
+
+again go to job -->build -->send file or execute commands over ssh -->name jenkins -->Exec cmd 
+$ cd /opt
+$ docker image build -t $JOB_NAME:v1.$BUILD_ID . 
+$ docker image tag $JOB_NAME:v1.$BUILD_ID rupsdan/$JOB_NAME:v1.$BUILD_ID
+$ docker image tag $JOB_NAME:v1.$BUILD_ID rupsdan/$JOB_NAME:latest
+$ docker image push rupsdan/$JOB_NAME:v1.$BUILD_ID
+$ docker image push rupsdan/$JOB_NAME:latest
+$ docker image rmi $JOB_NAME:v1.$BUILD_ID rupsdan/$JOB_NAME:v1.$BUILD_ID rupsdan/$JOB_NAME:latest
+
+Go to post build -->Ansible -->Exec cmd
+$ ansible-playbook /home/ec2-user/sourcecode/docker.yml
+*************************2*****************************
+step1. Install Ansible and Docker on Ansible Server
+$ sudo yum install ansible*
+$ sudo yum install docker
+$ sudo systemctl start docker
+$ sudo systemctl enable docker
+
+step2.Give root access to instance
+$ vi /etc/ssh/sshd_config 
+  uncomment PermitRootLogin
+  and write yes PasswordAuthentication
+
+step3. set root password
+$ passwd root
+
+step4:- create ssh key
+$ ssh-keygen
+$ ssh-copy-id roo@<ansible server private ip>
+
+step5:create directory
+$ mkdir /home/ec2-user/sourcecode
+$ vi playbook.yml
+- hosts: all
+  tasks:
+     - name: create container
+       shell: docker container run-itd --name <docker image name> -p <port_number>:80 <docker image pull from dockerhub>
+**************************3*****************************
+3. Install Docker on Docker Server
+$ sudo systemctl start docker
+$ sudo systemctl enable docker
