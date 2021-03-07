@@ -76,6 +76,8 @@ $ vi playbook.yml
   tasks:
      - name: create container
        shell: docker container run-itd --name <docker image name> -p <port_number>:80 <docker image pull from dockerhub>
+ step6: Docker login 
+ $ docker login
 **************************3*****************************
 3. Install Docker on Docker Server
 $ sudo systemctl start docker
