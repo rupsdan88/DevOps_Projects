@@ -1,6 +1,6 @@
 ## project based on AWS, Jenkins, Ansible and Docker
 
-First create 3 instance on Aws
+First create 3 instance on OP
 First instance -->Jenkins
 Second instance -->Ansible
 Third instance -->Docker
